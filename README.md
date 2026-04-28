@@ -12,6 +12,29 @@ make build
 
 The web UI runs at `http://localhost:7777` by default. Use `snape serve --addr :8080` to choose another port.
 
+## Installation
+
+The easiest install path is the release installer. It downloads the latest GitHub Release binary for your OS and installs it to `~/.local/bin`:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/Ebube-Ugwu/snape/master/scripts/install.sh | sh
+```
+
+Make sure `~/.local/bin` is on your `PATH`:
+
+```sh
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+You can also download a binary manually from the GitHub Releases page, rename it to `snape`, make it executable, and place it anywhere on your `PATH`.
+
+To build from source instead:
+
+```sh
+make build
+install -m 755 dist/snape ~/.local/bin/snape
+```
+
 ## CLI Commands
 
 ### Add a Snippet
@@ -89,3 +112,7 @@ make build
 ```
 
 Core code lives in `internal/data`, the CLI entry point is `cmd/main.go`, and embedded web assets live in `internal/server/static`.
+
+## License
+
+Snape is licensed under the MIT License. See `LICENSE`.

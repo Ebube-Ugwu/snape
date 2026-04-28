@@ -9,6 +9,7 @@ Snape is a Go module (`github.com/ebube-ugwu/snape`) for a local-first snippet m
 - `internal/data/migrations/` contains embedded SQL migrations. Use paired `NNNN_description.up.sql` and `NNNN_description.down.sql` files.
 - `internal/server/` serves the web UI and JSON API.
 - `internal/server/static/` contains embedded React-style browser assets.
+- `scripts/install.sh` installs the latest GitHub Release binary into `~/.local/bin`.
 
 Treat `snape.db` as local runtime data, not source.
 
@@ -39,4 +40,4 @@ Use concise Conventional Commit-style messages, matching the existing history: `
 
 ## CI and Releases
 
-GitHub Actions lives in `.github/workflows/ci.yml`. Keep it validating `go test ./...` and cross-building Linux, macOS, Windows, and Android artifacts with `CGO_ENABLED=0`.
+GitHub Actions lives in `.github/workflows/ci.yml`. Keep it validating `go test ./...`, cross-building Linux, macOS, Windows, and Android artifacts with `CGO_ENABLED=0`, and publishing release assets for version tags.
