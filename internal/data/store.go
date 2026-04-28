@@ -25,6 +25,14 @@ type Snippet struct {
 	Tags        []string  `json:"tags,omitempty"`
 }
 
+type Tag struct {
+	ID         int64     `json:"id"`
+	Name       string    `json:"name"`
+	UsageCount int       `json:"usage_count"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
+}
+
 type Store struct {
 	db *sql.DB
 }
@@ -149,7 +157,7 @@ func (s *Store) ListSnippets() ([]Snippet, error) {
 		SELECT id, name, COALESCE(description, ''), content, COALESCE(language, ''), COALESCE(type, 'inline'),
 		       COALESCE(usage_count, 0), created_at, updated_at
 		FROM snippets
-		ORDER BY updated_at DESC, name ASC
+		ORDER BY created_at DESC, id DESC
 	`)
 	if err != nil {
 		return nil, err
@@ -165,8 +173,48 @@ func (s *Store) SearchSnippets(query string) ([]Snippet, error) {
 		       COALESCE(usage_count, 0), created_at, updated_at
 		FROM snippets
 		WHERE name LIKE ? OR description LIKE ? OR content LIKE ? OR language LIKE ?
-		ORDER BY updated_at DESC, name ASC
+		ORDER BY created_at DESC, id DESC
 	`, like, like, like, like)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	return s.scanSnippets(rows)
+}
+
+func (s *Store) ListTags() ([]Tag, error) {
+	rows, err := s.db.Query(`
+		SELECT id, name, COALESCE(usage_count, 0), created_at, updated_at
+		FROM tags
+		ORDER BY name ASC
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	tags := []Tag{}
+	for rows.Next() {
+		var tag Tag
+		if err := rows.Scan(&tag.ID, &tag.Name, &tag.UsageCount, &tag.CreatedAt, &tag.UpdatedAt); err != nil {
+			return nil, err
+		}
+		tags = append(tags, tag)
+	}
+	return tags, rows.Err()
+}
+
+func (s *Store) SnippetsByTag(tag string) ([]Snippet, error) {
+	rows, err := s.db.Query(`
+		SELECT snippets.id, snippets.name, COALESCE(snippets.description, ''), snippets.content,
+		       COALESCE(snippets.language, ''), COALESCE(snippets.type, 'inline'),
+		       COALESCE(snippets.usage_count, 0), snippets.created_at, snippets.updated_at
+		FROM snippets
+		JOIN snippet_tags ON snippet_tags.snippet_id = snippets.id
+		JOIN tags ON tags.id = snippet_tags.tag_id
+		WHERE tags.name = ?
+		ORDER BY snippets.created_at DESC, snippets.id DESC
+	`, tag)
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +247,7 @@ func (s *Store) TagSnippet(name string, tag string) error {
 		return err
 	}
 
-	result, err := s.db.Exec(`
+	_, err = s.db.Exec(`
 		INSERT INTO tags (name, usage_count)
 		VALUES (?, 1)
 		ON CONFLICT(name) DO UPDATE SET usage_count = usage_count + 1, updated_at = CURRENT_TIMESTAMP
@@ -208,11 +256,8 @@ func (s *Store) TagSnippet(name string, tag string) error {
 		return err
 	}
 
-	tagID, err := result.LastInsertId()
-	if err != nil || tagID == 0 {
-		err = s.db.QueryRow("SELECT id FROM tags WHERE name = ?", tag).Scan(&tagID)
-	}
-	if err != nil {
+	var tagID int64
+	if err := s.db.QueryRow("SELECT id FROM tags WHERE name = ?", tag).Scan(&tagID); err != nil {
 		return err
 	}
 

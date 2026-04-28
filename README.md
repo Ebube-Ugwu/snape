@@ -100,7 +100,7 @@ snape serve
 snape serve --addr :8080
 ```
 
-The React assets are embedded in the Go binary and served directly by `net/http`.
+The React assets are embedded in the Go binary and served directly by `net/http`. The web UI opens on a paginated home view showing all snippets, newest first, 10 per page. Use the nav search box to filter snippets, `Tags` to browse snippets by tag, and tag badges on a snippet detail page to jump to that tag's filtered view. Snippet detail pages also support copying and editing.
 
 ## Development
 

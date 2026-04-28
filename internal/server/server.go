@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/fs"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/ebube-ugwu/snape/internal/data"
@@ -17,6 +18,8 @@ func Handler(store *data.Store) http.Handler {
 	mux := http.NewServeMux()
 	assets, _ := fs.Sub(staticFiles, "static")
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(assets))))
+	mux.HandleFunc("/api/tags", tags(store))
+	mux.HandleFunc("/api/tags/", tagSnippets(store))
 	mux.HandleFunc("/api/snippets", snippets(store))
 	mux.HandleFunc("/api/snippets/", snippet(store))
 	mux.HandleFunc("/", index)
@@ -29,6 +32,39 @@ func index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.ServeFileFS(w, r, staticFiles, "static/index.html")
+}
+
+func tags(store *data.Store) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
+		tags, err := store.ListTags()
+		writeJSON(w, tags, err)
+	}
+}
+
+func tagSnippets(store *data.Store) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
+		path := strings.TrimPrefix(r.URL.Path, "/api/tags/")
+		tagName, ok := strings.CutSuffix(path, "/snippets")
+		if !ok || tagName == "" {
+			http.NotFound(w, r)
+			return
+		}
+		tagName, err := url.PathUnescape(tagName)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		snippets, err := store.SnippetsByTag(tagName)
+		writeJSON(w, snippets, err)
+	}
 }
 
 func snippets(store *data.Store) http.HandlerFunc {

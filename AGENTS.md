@@ -8,7 +8,7 @@ Snape is a Go module (`github.com/ebube-ugwu/snape`) for a local-first snippet m
 - `internal/data/` contains SQLite setup, migrations, store methods, templating helpers, and tests.
 - `internal/data/migrations/` contains embedded SQL migrations. Use paired `NNNN_description.up.sql` and `NNNN_description.down.sql` files.
 - `internal/server/` serves the web UI and JSON API.
-- `internal/server/static/` contains embedded React-style browser assets.
+- `internal/server/static/` contains embedded React-style browser assets. Keep `app.tsx` and served `app.js` behavior in sync.
 - `scripts/install.sh` installs the latest GitHub Release binary into `~/.local/bin`.
 
 Treat `snape.db` as local runtime data, not source.

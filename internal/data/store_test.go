@@ -117,6 +117,45 @@ func TestUpsertSnippetReplacesExistingSnippetAndTags(t *testing.T) {
 	}
 }
 
+func TestListTagsAndSnippetsByTag(t *testing.T) {
+	store := newTestStore(t)
+	defer store.Close()
+
+	if _, err := store.CreateSnippet(Snippet{Name: "go-one", Content: "one", Tags: []string{"go", "cli"}}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.CreateSnippet(Snippet{Name: "go-two", Content: "two", Tags: []string{"go"}}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.CreateSnippet(Snippet{Name: "web-one", Content: "web", Tags: []string{"web"}}); err != nil {
+		t.Fatal(err)
+	}
+
+	tags, err := store.ListTags()
+	if err != nil {
+		t.Fatal(err)
+	}
+	gotTags := []string{}
+	for _, tag := range tags {
+		gotTags = append(gotTags, tag.Name)
+	}
+	if !reflect.DeepEqual(gotTags, []string{"cli", "go", "web"}) {
+		t.Fatalf("tags = %v, want [cli go web]", gotTags)
+	}
+
+	snippets, err := store.SnippetsByTag("go")
+	if err != nil {
+		t.Fatal(err)
+	}
+	gotNames := []string{}
+	for _, snippet := range snippets {
+		gotNames = append(gotNames, snippet.Name)
+	}
+	if !reflect.DeepEqual(gotNames, []string{"go-two", "go-one"}) {
+		t.Fatalf("snippets = %v, want [go-two go-one]", gotNames)
+	}
+}
+
 func newTestStore(t *testing.T) *Store {
 	t.Helper()
 
