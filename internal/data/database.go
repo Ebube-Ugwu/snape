@@ -47,7 +47,7 @@ func MigrateDB(dbURI string) {
 func OpenDB(dbPath string) *sql.DB {
 	log.Println("Open DB handle to:", dbPath)
 
-	db, err := sql.Open("sqlite3", dbPath)
+	db, err := sql.Open("sqlite", dbPath)
 	if err != nil {
 		panic(err)
 	}

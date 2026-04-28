@@ -1,0 +1,21 @@
+ALTER TABLE snippets ADD COLUMN language TEXT DEFAULT '';
+ALTER TABLE snippets ADD COLUMN type TEXT DEFAULT 'inline';
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_snippets_name ON snippets(name);
+
+CREATE TABLE IF NOT EXISTS snippet_versions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  snippet_id INTEGER NOT NULL,
+  content TEXT NOT NULL,
+  saved_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (snippet_id) REFERENCES snippets(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS variables (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  snippet_id INTEGER NOT NULL,
+  key TEXT NOT NULL,
+  default_value TEXT DEFAULT '',
+  UNIQUE(snippet_id, key),
+  FOREIGN KEY (snippet_id) REFERENCES snippets(id) ON DELETE CASCADE
+);
