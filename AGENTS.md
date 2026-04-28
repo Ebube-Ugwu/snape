@@ -16,7 +16,7 @@ Treat `snape.db` as local runtime data, not source.
 
 - `go run ./cmd list` runs Snape from source.
 - `go run ./cmd serve --addr :7777` starts the embedded web UI.
-- `go build -o snape ./cmd` builds a local binary.
+- `make build` builds a local binary at `dist/snape`.
 - `go test ./...` runs all tests.
 - `gofmt -w cmd internal` formats Go code.
 - `go mod tidy` cleans dependency metadata after dependency changes.
