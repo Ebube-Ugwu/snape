@@ -36,7 +36,6 @@ func MigrateDB(dbURI string) {
 		return
 	}
 
-	log.Println("Running migrations")
 	err = migrations.Up()
 	if err != nil && err.Error() != "no change" {
 		log.Println(err)
@@ -45,8 +44,6 @@ func MigrateDB(dbURI string) {
 }
 
 func OpenDB(dbPath string) *sql.DB {
-	log.Println("Open DB handle to:", dbPath)
-
 	db, err := sql.Open("sqlite", dbPath)
 	if err != nil {
 		panic(err)
@@ -60,7 +57,6 @@ func OpenDB(dbPath string) *sql.DB {
 }
 
 func saveDB(db *sql.DB, dbDiskPath string) {
-	log.Println("Writing DB to file:", dbDiskPath)
 	os.Remove(dbDiskPath)
 	statement, err := db.Prepare("vacuum main into ?")
 	if err != nil {
@@ -72,11 +68,10 @@ func saveDB(db *sql.DB, dbDiskPath string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println(result)
+	_ = result
 }
 
 func loadDB(dbDiskPath string) *sql.DB {
-	log.Println("loading saved DB file:", dbDiskPath)
 	db := OpenDB(MemDbURI)
 	// dbDisk := OpenDB(dbDiskPath)
 	// err := backupDB(dbDisk, db)
